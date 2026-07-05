@@ -1,0 +1,1 @@
+/etc/nixos/rices/minimal-sway.nix
