@@ -27,6 +27,7 @@
           ./modules/sway.nix
           ./modules/sddm.nix
           ./modules/gaming.nix
+          ./modules/nh.nix
 
           home-manager.nixosModules.home-manager
           {

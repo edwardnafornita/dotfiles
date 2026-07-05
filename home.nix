@@ -7,6 +7,7 @@ in
   imports = [
     activeRice
     ./home/gaming.nix
+    ./home/update-system.nix
   ];
 
   home.username = "edi";
