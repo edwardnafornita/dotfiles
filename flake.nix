@@ -30,16 +30,9 @@
           ./modules/nh.nix
 
           home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "hm-backup";
-            home-manager.extraSpecialArgs = {
-              inherit inputs;
-            };
+          ./modules/home-manager.nix
 
-            home-manager.users.${username} = import ./home.nix;
-          }
+          ./users
         ];
       };
     };

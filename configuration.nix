@@ -30,11 +30,6 @@
 
   services.xserver.xkb.layout = "us";
 
-  users.users.edi = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-  };
-
   environment.systemPackages = with pkgs; [
     limine-full
     sbctl
