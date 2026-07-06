@@ -1,5 +1,37 @@
 {
   "nodes": {
+    "ctt-dwm": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1783294689,
+        "narHash": "sha256-tkOHMjK56hRdsSqgBoT51WSlgPzqhZGyARrGBVeoqKs=",
+        "owner": "ChrisTitusTech",
+        "repo": "dwm-titus",
+        "rev": "7f99ed94697d0c6eb498738eaf8920c7025185a5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ChrisTitusTech",
+        "repo": "dwm-titus",
+        "type": "github"
+      }
+    },
+    "ctt-mybash": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782443218,
+        "narHash": "sha256-7k3hFO5SEewceafBWsZksY13XknMJjRovkdWjngaAng=",
+        "owner": "ChrisTitusTech",
+        "repo": "mybash",
+        "rev": "5e661cb51c52cc2f54571f59bf093e36e188851e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ChrisTitusTech",
+        "repo": "mybash",
+        "type": "github"
+      }
+    },
     "dms": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -90,6 +122,8 @@
     },
     "root": {
       "inputs": {
+        "ctt-dwm": "ctt-dwm",
+        "ctt-mybash": "ctt-mybash",
         "dms": "dms",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs_2"

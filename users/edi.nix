@@ -8,6 +8,7 @@ in
     ../home/common.nix
     ../home/gaming.nix
     ../home/update-system.nix
+    ../home/ctt-bash.nix
     activeRice
   ];
 

@@ -10,6 +10,16 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    ctt-mybash = {
+      url = "github:ChrisTitusTech/mybash";
+      flake = false;
+    };
+
+    ctt-dwm = {
+      url = "github:ChrisTitusTech/dwm-titus";
+      flake = false;
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, dms, ... }:
