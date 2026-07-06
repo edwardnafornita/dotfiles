@@ -6,7 +6,7 @@ let
     description ? username,
     isAdmin ? false,
     extraGroups ? [ ],
-    homeModule ? ./. + "${username}.nix",
+    homeModule ? ./. + "/${username}.nix",
   }: {
     users.users.${username} = {
       isNormalUser = true;
