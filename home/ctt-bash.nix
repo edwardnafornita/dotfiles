@@ -15,7 +15,7 @@
     enable = true;
 
     initExtra = ''
-      if [ -f $(inputs.ctt-mybash}/.bashrc ]; then
+      if [ -f ${inputs.ctt-mybash}/.bashrc ]; then
         source ${inputs.ctt-mybash}/.bashrc
       fi
     '';

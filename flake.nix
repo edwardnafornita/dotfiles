@@ -40,6 +40,7 @@
           ./configuration.nix
           ./modules/sway.nix
           ./modules/sddm.nix
+	  ./modules/dwm-titus.nix
           ./modules/gaming.nix
           ./modules/nh.nix
 
