@@ -63,6 +63,10 @@ in
 
   services.displayManager.sessionPackages = [
     dwm-titus
+  ];
+
+  environment.systemPackages = with pkgs; [
+    dwm-titus
 
     xorg.xinit
     xorg.xrdb
