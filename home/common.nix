@@ -2,6 +2,7 @@
 
 {
   home.packages = with pkgs; [
+    btop
     vim
     git
     gh

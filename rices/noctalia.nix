@@ -32,7 +32,6 @@ let
         off
       }
     }
-    spawn-at-startup "noctalia"
     hotkey-overlay {
       skip-at-startup
     }
