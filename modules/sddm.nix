@@ -2,7 +2,7 @@
 
 {
   services.displayManager = {
-    defaultSession = "sway";
+    defaultSession = "niri";
 
     sddm = {
       enable = true;

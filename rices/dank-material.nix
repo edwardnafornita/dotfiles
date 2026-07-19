@@ -10,7 +10,6 @@
   };
 
   home.packages = with pkgs; [
-    foot
     wl-clipboard
   ];
 
@@ -18,7 +17,7 @@
     include /etc/sway/config.d/*
 
     set $mod Mod4
-    set $term foot
+    set $term alacritty
 
     exec dms run
 

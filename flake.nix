@@ -1,6 +1,11 @@
 {
   description = "Minimal NixOS configuration";
 
+  nixConfig = {
+    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-trusted-public-keys = "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWp0XNFQsBRglJzxWPp3dkU4=";
+  };
+
   inputs = {
     dms.url = "github:AvengeMedia/DankMaterialShell";
 
@@ -16,9 +21,8 @@
       flake = false;
     };
 
-    ctt-dwm = {
-      url = "github:ChrisTitusTech/dwm-titus";
-      flake = false;
+    noctalia = {
+      url = "github:noctalia-dev/noctalia/cachix";
     };
   };
 
@@ -38,9 +42,8 @@
 
         modules = [
           ./configuration.nix
-          ./modules/sway.nix
+          ./modules/niri.nix
           ./modules/sddm.nix
-	  ./modules/dwm-titus.nix
           ./modules/gaming.nix
           ./modules/nh.nix
 

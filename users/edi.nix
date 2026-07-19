@@ -1,7 +1,7 @@
 { config, pkgs, inputs, ... }:
 
 let
-  activeRice = ../rices/dank-material.nix;
+  activeRice = ../rices/noctalia.nix;
 in
 {
   imports = [
