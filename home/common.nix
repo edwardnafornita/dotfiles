@@ -4,6 +4,7 @@
   home.packages = with pkgs; [
     vim
     git
+    gh
     curl
     wget
     tree
