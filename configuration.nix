@@ -37,8 +37,30 @@
   services.xserver.xkb.layout = "us";
 
   environment.systemPackages = with pkgs; [
+    (pkgs.writeShellScriptBin "reboot-windows" ''
+      set -euo pipefail
+  
+      boot_number="$(
+        ${pkgs.efibootmgr}/bin/efibootmgr |
+        ${pkgs.gnused}/bin/sed -n \
+          's/^Boot\([0-9A-Fa-f]\{4\}\)\*.*Windows Boot Manager.*/\1/p' |
+        ${pkgs.coreutils}/bin/head -n1
+      )"
+  
+      if [ -z "$boot_number" ]; then
+        echo "Windows Boot Manager was not found in the UEFI boot entries." >&2
+        exit 1
+      fi
+  
+      echo "Setting Windows Boot Manager ($boot_number) as BootNext..."
+      ${pkgs.efibootmgr}/bin/efibootmgr --bootnext "$boot_number"
+      ${pkgs.systemd}/bin/systemctl reboot
+    '')
+
     limine-full
     sbctl
+    efibootmgr
+    pavucontrol
   ];
   
   system.stateVersion = "26.05";

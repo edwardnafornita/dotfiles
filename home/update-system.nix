@@ -3,8 +3,6 @@
 {
   home.packages = with pkgs; [
     nh
-    git
-    foot
   ];
 
   home.file.".local/bin/update-system" = {

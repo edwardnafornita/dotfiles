@@ -9,6 +9,7 @@ in
     ../home/gaming.nix
     ../home/update-system.nix
     ../home/ctt-bash.nix
+    ../home/programming.nix
     activeRice
   ];
 

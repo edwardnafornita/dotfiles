@@ -15,6 +15,8 @@
     unzip
     unrar
     file-roller
+
+    vesktop
   ];
 }
 

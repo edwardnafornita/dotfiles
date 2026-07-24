@@ -11,6 +11,11 @@
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+    helium = {
+      url = "github:oxcl/nix-flake-helium-browser";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -46,6 +51,12 @@
           ./modules/sddm.nix
           ./modules/gaming.nix
           ./modules/nh.nix
+	  ./modules/helium.nix
+	  ./modules/keyd.nix
+	  ./modules/thunar.nix
+	  ./modules/screenshots.nix
+
+	  inputs.helium.nixosModules.default
 
           home-manager.nixosModules.home-manager
           ./modules/home-manager.nix

@@ -58,6 +58,7 @@
     mesa-demos
     pciutils
     usbutils
+    xwayland-satellite
   ];
 }
 

@@ -51,6 +51,26 @@
         "type": "github"
       }
     },
+    "helium": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784366653,
+        "narHash": "sha256-v+XbsnICBmN2jCwRrUCkV5SwMZOhchkwubCpTxR2Pf0=",
+        "owner": "oxcl",
+        "repo": "nix-flake-helium-browser",
+        "rev": "7aed9015e3499dd02fe8e1f589512c0fddf730cb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxcl",
+        "repo": "nix-flake-helium-browser",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -140,6 +160,7 @@
       "inputs": {
         "ctt-mybash": "ctt-mybash",
         "dms": "dms",
+        "helium": "helium",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs_2",
         "noctalia": "noctalia"

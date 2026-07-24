@@ -1,12 +1,14 @@
 { config, pkgs, ... }:
 
 {
+  services.xserver.enable = true;
+
   services.displayManager = {
     defaultSession = "niri";
 
     sddm = {
       enable = true;
-      wayland.enable = true;
+      wayland.enable = false;
 
       package = pkgs.kdePackages.sddm;
 

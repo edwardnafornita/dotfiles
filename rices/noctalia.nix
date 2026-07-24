@@ -1,6 +1,7 @@
 { inputs, pkgs, ... }:
 
 let
+  screenshot-path = "~/Pictures/Screenshots/Screenshot_%Y-%m-%d_%H-%M-%S.png";
   niriConfig = pkgs.writeText "niri-config.kdl" ''
     input {
       keyboard {
@@ -14,6 +15,20 @@ let
 	natural-scroll
       }
     }
+
+    output "DP-2" {
+      mode "2560x1440@180.002"
+      scale 1.0
+      position x=0 y=0
+      focus-at-startup
+    }
+
+    output "DP-3" {
+      mode "2560x1440@180.002"
+      scale 1.0
+      position x=2560 y=0
+    }
+
     layout {
       gaps 12
       center-focused-column "on-overflow"
@@ -32,6 +47,12 @@ let
         off
       }
     }
+
+    cursor {
+      xcursor-theme "Bibata-Modern-Ice"
+      xcursor-size 32
+    }
+
     hotkey-overlay {
       skip-at-startup
     }
@@ -54,6 +75,18 @@ let
       }
     }
 
+    window-rule {
+      match app-id="steam" title=r#"^notificationtoasts_\d+_desktop$"#
+      default-floating-position x=10 y=10 relative-to="bottom-right"
+      open-focused false
+    }
+
+    window-rule {
+      match app-id="btop"
+      open-focused true
+      open-fullscreen true
+    }
+
     layer-rule {
       match namespace="^noctalia-backdrop"
       place-within-backdrop true
@@ -64,12 +97,40 @@ let
     }
 
     binds {
-      Mod+Return {
+      Mod+T {
         spawn "alacritty"
       }
 
-      Mod+Space {
-        spawn "noctalia" "msg" "panel-toggle" "launcher"
+      Mod+E {
+        spawn "thunar"
+      }
+
+      Mod+B {
+        spawn "helium"
+      }
+
+      Mod+Shift+S hotkey-overlay-title="Screenshot Area" {
+        screenshot;
+      }
+
+      Ctrl+Mod+Shift+S hotkey-overlay-title="Screenshot Monitor" {
+        screenshot-screen;
+      }
+
+      Alt+Mod+Shift+S hotkey-overlay-title="Screenshot Window" {
+        screenshot-window;
+      }
+
+      Mod+Alt+V {
+        spawn "pavucontrol"
+      }
+
+      Ctrl+Shift+Escape repeat=false hotkey-overlay-title="Task Manager" {
+        spawn "alacritty" "-e" "btop"
+      }
+
+      Mod+Space repeat=false hotkey-overlay-title="Application Launcher" {
+        spawn "noctalia" "msg" "panel-toggle" "launcher";
       }
 
       Mod+S {
@@ -204,6 +265,8 @@ let
       }
     }
   '';
+  cursorSize = 32;
+  cursorTheme = "Bibata-Modern-Ice";
 in
 {
   imports = [
@@ -297,6 +360,29 @@ in
     playerctl
     brightnessctl
   ];
+
+  home.pointerCursor = {
+    enable = true;
+
+    package = pkgs.bibata-cursors;
+    name = cursorTheme;
+    size = cursorSize;
+
+    gtk.enable = true;
+    x11.enable = true;
+  };
+
+  home.sessionVariables = {
+    XCURSOR_THEME = cursorTheme;
+    XCURSOR_SIZE = toString cursorSize;
+  };
+
+  dconf.settings."org/gnome/desktop/interface" = {
+    cursor-theme = cursorTheme;
+    cursor-size = cursorSize;
+  };
+
+  gtk.enable = true;
 
   xdg.configFile."niri/config.kdl".source =
     pkgs.runCommand "niri-config-checked" {
