@@ -27,6 +27,7 @@
   networking.networkmanager.enable = true;
 
   hardware.bluetooth.enable = true;
+  hardware.xpadneo.enable = true;
 
   services.tuned.enable = true;
   
