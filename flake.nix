@@ -55,6 +55,7 @@
 	  ./modules/keyd.nix
 	  ./modules/thunar.nix
 	  ./modules/screenshots.nix
+	  ./modules/hardware/other-drives.nix
 
 	  inputs.helium.nixosModules.default
 

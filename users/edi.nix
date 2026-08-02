@@ -10,6 +10,7 @@ in
     ../home/update-system.nix
     ../home/ctt-bash.nix
     ../home/programming.nix
+    ../modules/direnv.nix
     activeRice
   ];
 
