@@ -3,6 +3,7 @@
 {
   home.packages = with pkgs; [
     jetbrains.rider
+    vscode
     dotnet-sdk_10
     docker-compose
     openssl
