@@ -11,6 +11,7 @@ in
     ../home/ctt-bash.nix
     ../home/programming.nix
     ../modules/direnv.nix
+    ../modules/spotify.nix
     activeRice
   ];
 
