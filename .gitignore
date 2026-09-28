@@ -1,1 +1,5 @@
 result
+result-*
+# Private hardware and preferences survive shared repository updates.
+/settings/local/
+__pycache__/
