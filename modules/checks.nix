@@ -45,14 +45,24 @@
         assert !c.programs.steam.enable;
         assert c.home-manager.users.alice.home.homeDirectory == "/home/alice";
         c.system.build.toplevel.drvPath;
-      ediDesktop =
+      ediSystem =
         desktop:
-        (self.lib.mkSystem (
+        self.lib.mkSystem (
           { lib, ... }: {
             imports = [ ../settings/hosts/nixos.nix ];
+            # Test each complete session independently of the host's active choice.
+            # Overriding only desktop leaves an explicitly selected shell behind.
             desktop = lib.mkForce desktop;
+            shell =
+              lib.mkForce
+                {
+                  plasma = "none";
+                  niri = "noctalia";
+                  hyprland = "caelestia";
+                }
+                .${desktop};
           }
-        )).config.system.build.toplevel.drvPath;
+        );
       adopted =
         (self.lib.mkSystem {
           machineModule = ../tests/adopted-machine.nix;
@@ -73,7 +83,9 @@
               profiles = builtins.unsafeDiscardStringContext (
                 builtins.toJSON {
                   friends = lib.genAttrs [ "plasma" "niri" "hyprland" ] inspect;
-                  existing = lib.genAttrs [ "plasma" "niri" "hyprland" ] ediDesktop;
+                  existing = lib.genAttrs [ "plasma" "niri" "hyprland" ] (
+                    desktop: (ediSystem desktop).config.system.build.toplevel.drvPath
+                  );
                   hyprlandShells = lib.genAttrs [ "noctalia" "caelestia" ] inspectHyprlandShell;
                   adoption =
                     assert adopted.system.stateVersion == "25.11";
@@ -93,8 +105,7 @@
               cp "$profilesPath" "$out"
             '';
         niri-config =
-          (self.lib.mkSystem ../settings/hosts/nixos.nix)
-          .config.home-manager.users.edi.xdg.configFile."niri/config.kdl".source;
+          (ediSystem "niri").config.home-manager.users.edi.xdg.configFile."niri/config.kdl".source;
         hyprland-config =
           pkgs.runCommand "hyprland-config-checked"
             {
