@@ -58,9 +58,12 @@ bash scripts/install.sh --existing
 For a **fresh whole-disk install**, boot the NixOS x86_64 UEFI ISO and run the same
 steps with `--fresh`. It lists disks, refuses disks in use, requires the exact
 `ERASE /dev/...` confirmation, generates hardware configuration for that computer,
-and asks for the new account password. See the [installation guide](docs/installation.md)
-first: this simple fresh mode is unencrypted, erases the chosen disk, and does not
-set up dual boot. Use the graphical NixOS installer for those layouts.
+and asks for the new account password. Fresh installs use compressed **Btrfs**,
+automatic root/home **Snapper snapshots**, and signed **Limine Secure Boot**.
+Prepare firmware Setup Mode before installation, authorize key enrollment, then
+enable Secure Boot in firmware afterward. See the [installation guide](docs/installation.md)
+first: fresh mode is unencrypted, erases the chosen disk, and does not set up dual
+boot. Use the graphical NixOS installer for encryption/dual-boot layouts.
 
 Do **not** run either installer on Edi's already-managed machine. Its output is
 `edi-nixos` (renamed from `nixos` to prevent accidental fallback); it continues to use its existing hardware and Limine Secure Boot.

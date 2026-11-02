@@ -22,6 +22,7 @@ let
         self.nixosModules.applications
         self.nixosModules.desktop
         self.nixosModules.maintenance
+        self.nixosModules.recovery
       ];
     };
 in

@@ -21,7 +21,9 @@ flake.nix + flake.lock
         desktops/hyprland.nix  -> Hyprland compositor configuration
         shells/noctalia.nix    -> Noctalia appearance (Niri or Hyprland)
         shells/caelestia.nix   -> Caelestia appearance and service (Hyprland)
+      modules/input-method.nix  -> opt-in per-user Korean input and browser integration
       modules/maintenance.nix   -> cleanup, packaged commands and shortcuts
+      modules/recovery.nix      -> optional Btrfs snapshots and signed Limine
 ```
 
 `settings` is evaluated once with `lib.evalModules`: enums, booleans, user records
@@ -73,6 +75,16 @@ The existing machine's only special pieces are `settings/hosts/nixos.nix`,
 `hosts/nixos/`, and the root `hardware-configuration.nix`. Generic modules contain
 no Edi usernames, drive UUIDs or monitor connectors. Tests intentionally create
 Alice and Bob to catch accidental coupling to Edi.
+
+The fresh installer formats Btrfs, mounts all subvolumes before hardware detection,
+and copies `scripts/fresh-machine.nix` alongside the generated hardware module.
+Its local settings enable `btrfsSnapshots` and `secureBoot`; both default off for
+existing profiles. `modules/recovery.nix` configures Snapper retention/scheduling
+and signed Limine. Only the fresh installer enrolls firmware keys, after verifying
+Setup Mode and the target EFI signature. Private keys remain in the target's
+`/var/lib/sbctl`, outside all source snapshots. `tests/recovery-vm.nix` exercises
+Btrfs file restoration and EFI signing in a disposable guest; mock installer tests
+exercise confirmation gates, command ordering and failures without touching disks.
 
 ## References checked during the refactor
 

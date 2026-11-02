@@ -27,6 +27,9 @@ def render(args):
         raise ValueError("Unknown application bundle")
     groups = list(dict.fromkeys(groups))
     unfree = bool(set(groups) & {"gaming", "development", "media"})
+    fresh_settings = '''  btrfsSnapshots = true; # Root/home snapshots with bounded retention.
+  secureBoot = true; # Signed Limine; keys are enrolled by the fresh installer.
+''' if getattr(args, "fresh", False) else ""
     return f'''{{
   # Private machine settings. Ignored by Git; preserved by update-system.
   # Do not put passwords, tokens or private keys here: Nix sources are public locally.
@@ -36,7 +39,7 @@ def render(args):
   timeZone = {nix_string(args.timezone)};
   keyboardLayout = {nix_string(args.keyboard)};
   desktop = {nix_string(args.desktop)};
-  # shell = "noctalia"; # Optional Hyprland override; defaults follow the desktop.
+{fresh_settings}  # shell = "noctalia"; # Optional Hyprland override; defaults follow the desktop.
   allowUnfree = {str(unfree).lower()}; # Explicitly selected proprietary app bundles.
   updates = {{
     repository = {nix_string(args.repository)};
@@ -66,6 +69,7 @@ def main():
     parser.add_argument("--timezone", default="America/Toronto")
     parser.add_argument("--keyboard", default="us")
     parser.add_argument("--desktop", choices=["plasma", "niri", "hyprland"], default="plasma")
+    parser.add_argument("--fresh", action="store_true", help="Enable Btrfs snapshots and signed Limine for a fresh installation")
     parser.add_argument("--apps", nargs="*", default=[])
     parser.add_argument("--extra-groups", nargs="*", default=[])
     parser.add_argument("--repository", default="https://github.com/edwardnafornita/dotfiles.git")

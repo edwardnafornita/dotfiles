@@ -7,6 +7,7 @@
 }:
 let
   cursor = config.home.pointerCursor;
+  isCaelestia = settings.shell == "caelestia";
   launcher =
     if settings.shell == "noctalia" then
       "noctalia msg panel-toggle launcher"
@@ -17,6 +18,15 @@ let
       "noctalia msg session lock"
     else
       "caelestia-shell ipc call lock lock";
+  # Caelestia's own CLI gives a nicer swappy-editing screenshot flow; Noctalia has
+  # no equivalent, so it keeps the plain grim/slurp pipe.
+  screenshot =
+    if isCaelestia then "exec, caelestia screenshot" else "exec, grim -g \"$(slurp)\" - | wl-copy";
+  # Caelestia registers global shortcuts for media/brightness so its OSD and
+  # ddcutil-aware brightness logic run; Noctalia has no such globals to call.
+  mediaToggle = if isCaelestia then "global, caelestia:mediaToggle" else "exec, playerctl play-pause";
+  mediaNext = if isCaelestia then "global, caelestia:mediaNext" else "exec, playerctl next";
+  mediaPrev = if isCaelestia then "global, caelestia:mediaPrev" else "exec, playerctl previous";
 in
 {
   home.pointerCursor = {
@@ -67,7 +77,18 @@ in
         gaps_out = 12;
         border_size = 2;
       };
-      decoration.rounding = 12;
+      decoration = {
+        rounding = 12;
+        blur = {
+          enabled = true; # Required for Caelestia/Noctalia's translucent panels to render as intended.
+          size = 8;
+          passes = 2;
+          ignore_opacity = true; # Allows opacity-blurring (upstream Caelestia decoration.lua default).
+          new_optimizations = true;
+          popups = true;
+          input_methods = true;
+        };
+      };
       animations = {
         enabled = true; # Keep visual feedback while making transitions feel responsive.
         bezier = [ "quick,0.16,1,0.3,1" ]; # Fast start, gentle finish without overshoot.
@@ -82,13 +103,15 @@ in
         ];
       };
       "$mod" = "SUPER";
+      # Slurp's region-picker, used by the Print bind either way. Hyprland 0.55's
+      # layerrule syntax requires the explicit match:namespace field name.
+      layerrule = [ "animation fade, match:namespace selection" ];
       bind = [
         "$mod, T, exec, alacritty"
         "$mod, E, exec, thunar"
         "$mod, B, exec, ${settings.browser}"
         "$mod, Q, killactive,"
         "$mod, F, fullscreen,"
-        "$mod, V, togglefloating,"
         "$mod, Space, exec, ${launcher}"
         "$mod ALT, L, exec, ${lock}"
         "$mod SHIFT, E, exec, uwsm stop"
@@ -96,8 +119,12 @@ in
         "$mod, right, movefocus, r"
         "$mod, up, movefocus, u"
         "$mod, down, movefocus, d"
-        ", Print, exec, grim -g \"$(slurp)\" - | wl-copy"
+        "$mod ALT, Space, togglefloating,"
+        ", Print, ${screenshot}"
       ]
+      # Caelestia reserves $mod+V for its clipboard history; Noctalia keeps the
+      # original floating-toggle key since it has no clipboard bind to free it for.
+      ++ lib.optional (!isCaelestia) "$mod, V, togglefloating,"
       ++ lib.concatMap (n: [
         "$mod, ${toString n}, workspace, ${toString n}"
         "$mod SHIFT, ${toString n}, movetoworkspace, ${toString n}"
@@ -105,14 +132,22 @@ in
       bindel = [
         ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
         ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+      ]
+      ++ lib.optionals (!isCaelestia) [
         ", XF86MonBrightnessUp, exec, brightnessctl set +5%"
         ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
       ];
       bindl = [
         ", XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-        ", XF86AudioPlay, exec, playerctl play-pause"
-        ", XF86AudioNext, exec, playerctl next"
-        ", XF86AudioPrev, exec, playerctl previous"
+        ", XF86AudioPlay, ${mediaToggle}"
+        ", XF86AudioNext, ${mediaNext}"
+        ", XF86AudioPrev, ${mediaPrev}"
+      ]
+      # Caelestia's brightness globals aren't flagged repeating upstream (ddcutil
+      # calls are comparatively slow); brightnessctl's bindel equivalent was.
+      ++ lib.optionals isCaelestia [
+        ", XF86MonBrightnessUp, global, caelestia:brightnessUp"
+        ", XF86MonBrightnessDown, global, caelestia:brightnessDown"
       ];
       bindm = [
         "$mod, mouse:272, movewindow"

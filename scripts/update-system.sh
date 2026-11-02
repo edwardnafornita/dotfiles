@@ -56,6 +56,12 @@ flake="path:$snapshot#$DOTFILES_OUTPUT"
 printf 'Building %s from commit %s\n' "$DOTFILES_OUTPUT" "$(git rev-parse --short HEAD)"
 nix build --no-update-lock-file "path:$snapshot#nixosConfigurations.$DOTFILES_OUTPUT.config.system.build.toplevel" --out-link "$state/candidate"
 # Build first, then request sudo. A failed build never changes boot selection.
+if [[ ${DOTFILES_SNAPSHOTS:-0} == 1 ]]; then
+  for snapshot_config in root home; do
+    sudo "$(command -v snapper)" --no-dbus -c "$snapshot_config" create \
+      --cleanup-algorithm number --description "before-$mode-system"
+  done
+fi
 sudo "$(command -v nixos-rebuild)" "$activation" --flake "$flake" --no-write-lock-file
 if [[ $activation == boot ]]; then
   echo 'Update installed. Restart when convenient to use it.'

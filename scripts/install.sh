@@ -22,7 +22,7 @@ if [[ ${DOTFILES_INSTALL_TOOLS:-0} != 1 ]]; then
   export DOTFILES_INSTALL_TOOLS=1
   exec nix --extra-experimental-features 'nix-command flakes' shell \
     --inputs-from "path:$repo" --no-update-lock-file \
-    nixpkgs#git nixpkgs#python3 nixpkgs#parted nixpkgs#e2fsprogs \
+    nixpkgs#git nixpkgs#python3 nixpkgs#parted nixpkgs#btrfs-progs nixpkgs#sbctl \
     nixpkgs#dosfstools nixpkgs#util-linux nixpkgs#nixos-install-tools nixpkgs#nixos-rebuild \
     --command bash "$repo/scripts/install.sh" "$mode"
 fi
@@ -72,6 +72,7 @@ fi
 args=(--user "$login" --hostname "$hostname" --uid "$uid" --state-version "$state_version"
   --timezone "$timezone" --keyboard "$keyboard" --desktop "$desktop"
   --repository "$repository" --branch "$branch" --apps "${apps[@]}" --extra-groups "${extra_groups[@]}")
+if [[ $mode == --fresh ]]; then args+=(--fresh); fi
 python3 "$repo/scripts/write-local-settings.py" "${args[@]}" >/dev/null
 if [[ $mode == --fresh ]]; then
   bash "$repo/scripts/install-fresh.sh" "$repo" "${args[@]}"

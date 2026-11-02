@@ -87,6 +87,7 @@
             self.homeModules.core
             self.homeModules.applications
             self.homeModules.desktop
+            self.homeModules.input-method
             self.homeModules.maintenance
           ];
           _module.args.account = user;

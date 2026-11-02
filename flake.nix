@@ -31,7 +31,9 @@
         ./modules/core.nix
         ./modules/applications.nix
         ./modules/desktop.nix
+        ./modules/input-method.nix
         ./modules/maintenance.nix
+        ./modules/recovery.nix
         ./modules/hosts.nix
         ./modules/checks.nix
       ];

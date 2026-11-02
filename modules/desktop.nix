@@ -69,6 +69,9 @@
       };
       services.dbus.enable = true; # Desktop IPC.
       security.polkit.enable = true; # Graphical authorization for privileged settings.
+      # Caelestia's Brightness service shells out to ddcutil for external-monitor DDC
+      # control; the uaccess-tagged udev rule grants any locally-seated user access.
+      hardware.i2c.enable = lib.mkIf (settings.shell == "caelestia") true;
       programs.thunar = lib.mkIf wm {
         enable = true; # File manager for compositor sessions; Plasma provides Dolphin.
         plugins = with pkgs; [

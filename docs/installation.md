@@ -58,24 +58,59 @@ original system already does so.
 
 ## Fresh whole-disk installation
 
-This mode **erases all data on the selected disk**. It creates a GPT partition table,
-a 1 GiB FAT32 EFI partition and an ext4 root using the rest of the disk. It uses
-systemd-boot and compressed RAM swap. It does not enable disk encryption,
-hibernation or Secure Boot enrollment. For encryption or Windows dual boot, use
-the graphical installer followed by the existing-install route above. Edi's own
-Secure Boot and dual-boot configuration is independent and remains intact.
+This mode **erases all data on the selected disk**. It creates a GPT partition
+table, a 1 GiB FAT32 EFI partition and Btrfs using the rest of the disk. Separate
+`root`, `home`, and `nix` subvolumes use Zstd compression and `noatime`. Separate
+`snapshots` and `home-snapshots` subvolumes mount at `/.snapshots` and
+`/home/.snapshots`, with root-only access. `/boot` has restrictive permissions.
+Compressed RAM swap remains enabled; disk encryption and hibernation are not
+configured. For encryption or Windows dual boot, use the graphical installer
+followed by the existing-install route above. Adoption preserves that install's
+storage/boot configuration; it does not automatically enable these fresh-install
+features. Edi's existing boot and disk configuration is independent.
 
-1. Back up the target computer. Boot the official x86_64 NixOS live ISO in UEFI mode.
+Fresh installs use **Limine with Secure Boot signing and enrolled configuration
+checksums**, rather than systemd-boot. Before starting, disable Secure Boot and
+enter **UEFI Setup Mode** for custom-key enrollment. Disabling Secure Boot alone
+is insufficient. Firmware calls this Reset to Setup Mode, Delete Platform Key,
+or a similar device-specific action. Back up any existing firmware keys and
+recovery information first; do not reset keys on a machine whose existing boot
+setup you intend to keep.
+
+The installer checks Setup Mode before formatting, asks for explicit enrollment
+authorization, generates keys inside the target's `/var/lib/sbctl`, and verifies
+the installed Limine signature. It then enrolls the target keys with Microsoft
+and firmware vendor certificates. It does not use safety-bypass flags or enroll
+keys again during routine updates. Keys never enter the checkout or Nix store.
+If signature verification, initial snapshots or enrollment fail, the installer
+stops without reporting success; inspect the mounted target instead of rerunning
+formatting. Keep Secure Boot disabled until the failure is resolved.
+
+1. Back up the target computer. Prepare firmware Setup Mode as described above,
+   then boot the official x86_64 NixOS live ISO in UEFI mode.
 2. Connect to the internet. Open a terminal and clone the repository using the
    commands above. Do not launch the graphical installer at the same time.
 3. Run `bash scripts/install.sh --fresh`.
-4. Enter the account and software choices. Review the disk table, including serial
+4. Enter the account and software choices. Authorize Secure Boot key enrollment
+   with the exact phrase shown. Review the disk table, including serial
    number/model/size. Enter a whole-disk path, preferably `/dev/disk/by-id/...`.
 5. Type the exact `ERASE /dev/...` phrase shown. Any different response cancels.
 6. Wait for formatting, hardware detection, downloads and installation. Set the
    administrator password when prompted; it is written directly inside the new
    installation, never into a Nix expression or Git.
-7. Shut down, remove the USB drive, and start the machine. No automatic reboot occurs.
+7. Shut down, remove the USB drive, and enable **Secure Boot** in firmware using
+   the enrolled custom keys. Do not restore factory keys over the newly enrolled
+   keys. Start the machine and check `sudo sbctl status`: Secure Boot should be
+   enabled and Setup Mode disabled. No automatic reboot occurs.
+
+Snapper takes initial snapshots during installation, a root snapshot on boot,
+hourly root/home snapshots, and root/home snapshots before `apply-system` or
+`update-system` activates a built configuration. Daily cleanup retains up to
+6 hourly, 7 daily, 4 weekly and 3 monthly timeline snapshots, plus 10 numbered
+snapshots per config (subject to Snapper's minimum age). Monthly Btrfs scrubs
+check filesystem integrity. `/nix` and `/boot` are outside root snapshots:
+NixOS boot generations remain the mechanism for reverting installed software.
+See [snapshot recovery](maintenance.md#btrfs-file-recovery) for restoring files.
 
 The installer refuses disks with mounted children, active swap or device-mapper
 holders, rejects partitions instead of whole disks, and refuses an occupied
@@ -113,8 +148,9 @@ friend. A successful Nix evaluation cannot prove the physical machine boots.
 ## Installer tools
 
 The bootstrap shell uses the locked nixpkgs versions of Git (checkout/update),
-Python (safe settings serialization and read-only disk validation), parted/partprobe (partition table creation and kernel rescan),
-dosfstools (EFI FAT filesystem), e2fsprogs (ext4 root filesystem), util-linux
+Python (settings serialization, disk checks and Secure Boot JSON validation),
+parted/partprobe (partition table creation and kernel rescan), dosfstools (EFI FAT
+filesystem), btrfs-progs (root filesystem and subvolumes), sbctl (firmware status), util-linux
 (block-device inspection and mounts), and nixos-install-tools (hardware detection,
 installation and entering the installed system), and nixos-rebuild (installing
 a built generation on an existing system). Privileged commands use resolved

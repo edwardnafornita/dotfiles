@@ -17,6 +17,58 @@
           // extra
         );
       hyprlandShell = shell: (sampleWith "hyprland" { inherit shell; }).config;
+      # Use the exact generated machine module, with fake hardware alongside it.
+      freshMachine = pkgs.runCommand "fresh-machine-fixture" { } ''
+        mkdir -p $out
+        cp ${../scripts/fresh-machine.nix} $out/machine.nix
+        cp ${../tests/fresh-hardware.nix} $out/hardware-configuration.nix
+      '';
+      fresh =
+        (self.lib.mkSystem {
+          machineModule = "${freshMachine}/machine.nix";
+          users.alice.admin = true;
+          btrfsSnapshots = true;
+          secureBoot = true;
+        }).config;
+      inspectKoreanInput =
+        desktop:
+        let
+          c =
+            (sampleWith desktop {
+              browser = "helium";
+              users.alice = {
+                admin = true;
+                koreanInput = true;
+              };
+              users.bob.appGroups = [ ];
+            }).config;
+          alice = c.home-manager.users.alice;
+          bob = c.home-manager.users.bob;
+        in
+        # Enabling one account must not change the greeter, system environment or other users.
+        assert !c.i18n.inputMethod.enable;
+        assert c.services.xserver.xkb.layout == "us";
+        assert !(c.environment.sessionVariables ? XMODIFIERS);
+        assert !bob.i18n.inputMethod.enable;
+        assert !(bob.systemd.user.services ? fcitx5-daemon);
+        assert !(bob.home.sessionVariables ? XMODIFIERS);
+        assert !bob.programs.helium.enable;
+        assert alice.i18n.inputMethod.enable;
+        assert alice.systemd.user.services ? fcitx5-daemon;
+        assert alice.systemd.user.sessionVariables.XMODIFIERS == "@im=fcitx";
+        assert (alice.home.sessionVariables ? GTK_IM_MODULE) == (desktop == "plasma");
+        assert alice.i18n.inputMethod.fcitx5.settings.globalOptions.Behavior.ShareInputState == "All";
+        assert alice.i18n.inputMethod.fcitx5.settings.inputMethod."Groups/0".DefaultIM == "hangul";
+        assert builtins.elem "--enable-wayland-ime" alice.programs.helium.flags;
+        assert builtins.elem "--wayland-text-input-version=${
+          if desktop == "plasma" then "1" else "3"
+        }" alice.programs.helium.flags;
+        assert
+          c.programs.helium.flags == [
+            "--ozone-platform-hint=auto"
+            "--enable-features=TouchpadOverscrollHistoryNavigation"
+          ];
+        c.system.build.toplevel.drvPath;
       inspectHyprlandShell =
         shell:
         let
@@ -76,6 +128,11 @@
     in
     {
       checks = {
+        recovery-vm = pkgs.testers.runNixOSTest (
+          import ../tests/recovery-vm.nix {
+            recoveryModule = self.nixosModules.recovery;
+          }
+        );
         profiles =
           pkgs.runCommand "desktop-profile-evaluation"
             {
@@ -87,6 +144,27 @@
                     desktop: (ediSystem desktop).config.system.build.toplevel.drvPath
                   );
                   hyprlandShells = lib.genAttrs [ "noctalia" "caelestia" ] inspectHyprlandShell;
+                  koreanInput = lib.genAttrs [ "plasma" "niri" "hyprland" ] inspectKoreanInput;
+                  fresh =
+                    assert fresh.fileSystems."/".fsType == "btrfs";
+                    assert builtins.elem "subvol=home" fresh.fileSystems."/home".options;
+                    assert builtins.elem "subvol=nix" fresh.fileSystems."/nix".options;
+                    assert builtins.elem "compress=zstd" fresh.fileSystems."/".options;
+                    assert builtins.elem "fmask=0077" fresh.fileSystems."/boot".options;
+                    assert fresh.boot.loader.limine.secureBoot.enable;
+                    assert fresh.boot.loader.limine.secureBoot.autoGenerateKeys;
+                    assert !fresh.boot.loader.limine.secureBoot.autoEnrollKeys.enable;
+                    assert !fresh.boot.loader.systemd-boot.enable;
+                    assert fresh.boot.loader.limine.enrollConfig && fresh.boot.loader.limine.validateChecksums;
+                    assert fresh.boot.loader.limine.panicOnChecksumMismatch;
+                    assert fresh.services.snapper.configs.root.TIMELINE_CREATE;
+                    assert fresh.services.snapper.configs.home.TIMELINE_CLEANUP;
+                    assert fresh.services.snapper.configs.home.SUBVOLUME == "/home";
+                    assert fresh.systemd.timers.snapper-timeline.timerConfig.Persistent;
+                    assert fresh.services.btrfs.autoScrub.enable;
+                    assert adopted.services.snapper.configs == { };
+                    assert !adopted.boot.loader.limine.enable;
+                    fresh.system.build.toplevel.drvPath;
                   adoption =
                     assert adopted.system.stateVersion == "25.11";
                     assert !adopted.services.desktopManager.gnome.enable;

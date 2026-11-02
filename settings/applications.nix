@@ -34,6 +34,7 @@ pkgs: {
     docker-compose # Compose client; does not enable a Docker daemon.
     openssl # TLS and cryptography development tools.
     postgresql # Database client/development binaries; no database service.
+    claude-code # Claude Code for AI driven development.
   ];
   media = with pkgs; [
     spotify # Spotify desktop client; proprietary.

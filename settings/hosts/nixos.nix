@@ -3,8 +3,8 @@
   machineModule = ../../hosts/nixos;
   hostname = "nixos";
   stateVersion = "26.05";
-  desktop = "plasma";
-  shell = "none";
+  desktop = "niri";
+  shell = "noctalia";
   browser = "helium";
   allowUnfree = true; # Existing gaming, Spotify and development applications.
   xboxControllers = true; # Preserve xone and xpadneo support.
@@ -27,6 +27,7 @@
       "media"
     ];
     bash = "ctt";
+    koreanInput = true; # Ctrl+Space toggles US English and standard Korean Dubeolsik.
   };
   # Match the Niri monitor layout when selecting Hyprland: DP-2 left, DP-3 right.
   # Both displays use 2560x1440 at 180.002 Hz with 1x scaling.

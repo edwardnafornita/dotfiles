@@ -54,7 +54,12 @@
           noto-fonts # General Unicode coverage.
           noto-fonts-cjk-sans # CJK text in applications and games.
         ]
-        ++ lib.optional gaming corefonts; # Microsoft fonts expected by some Windows games.
+        ++ lib.optional gaming corefonts # Microsoft fonts expected by some Windows games.
+        ++ lib.optionals (settings.shell == "caelestia") [
+          material-symbols # Caelestia shell icon glyphs ("Material Symbols Rounded").
+          rubik # Caelestia shell clock/workspace label font.
+          nerd-fonts.caskaydia-cove # Caelestia shell mono/terminal font ("CaskaydiaCove NF").
+        ];
       environment.systemPackages = lib.optionals gaming (
         with pkgs;
         [
@@ -76,11 +81,22 @@
       pkgs,
       account,
       inputs,
+      settings,
       ...
     }:
     let
       bundles = import ../settings/applications.nix pkgs;
       development = builtins.elem "development" account.appGroups;
+      inputMethodPackage =
+        package:
+        if account.koreanInput && (package.pname or "") == "vscode" then
+          package.override {
+            commandLineArgs = "--enable-wayland-ime --wayland-text-input-version=${
+              if settings.desktop == "plasma" then "1" else "3"
+            }";
+          }
+        else
+          package;
     in
     {
       assertions = [
@@ -90,10 +106,12 @@
         }
       ];
       home.packages =
-        lib.concatMap (name: bundles.${name}) account.appGroups
-        ++ map (
-          name: lib.attrByPath (lib.splitString "." name) (throw "Unknown extra package: ${name}") pkgs
-        ) account.extraPackages
+        map inputMethodPackage (
+          lib.concatMap (name: bundles.${name}) account.appGroups
+          ++ map (
+            name: lib.attrByPath (lib.splitString "." name) (throw "Unknown extra package: ${name}") pkgs
+          ) account.extraPackages
+        )
         ++ lib.optionals (account.bash == "ctt") (
           with pkgs;
           [

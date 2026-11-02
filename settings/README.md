@@ -51,7 +51,7 @@ inline explanation of why it is included. Select bundles per account:
 | `essentials` | Editor, Git/GitHub, downloads, process/directory tools | None |
 | `desktop` | Office suite, media player, graphical editor | None |
 | `gaming` | Game launchers, Wine tools, mods and voice/chat | Steam, 32-bit graphics, GameMode, Gamescope and controller rules |
-| `development` | .NET SDK, Rider, VS Code and development clients | direnv in that account; **no** Docker or PostgreSQL daemon |
+| `development` | .NET SDK, Rider, VS Code, Claude Code and development clients | direnv in that account; **no** Docker or PostgreSQL daemon |
 | `media` | Spotify | None |
 
 `extraPackages` accepts nixpkgs attribute names such as `gimp`, `obs-studio` or
@@ -77,6 +77,8 @@ managed by Home Manager.
 | `printing` | `true` | Printers work through CUPS; mDNS discovery opens UDP 5353 locally |
 | `bluetooth` | `true` | Headphones, mice and controllers |
 | `flatpak` | `true` | GUI-managed applications outside the curated bundles |
+| `btrfsSnapshots` | `false` | Fresh installer enables root/home Snapper snapshots; existing disks are never converted |
+| `secureBoot` | `false` | Fresh installer enables signed Limine; requires machine-local keys and firmware enrollment |
 | `allowUnfree` | `false` | Proprietary licenses require an explicit choice |
 | `xboxControllers` | `false` | Extra Xbox drivers only on machines needing them |
 | `powerTuning` | `false` | Use power-profiles-daemon on generic machines; tuned is an explicit alternative |
@@ -85,12 +87,46 @@ managed by Home Manager.
 | `niriOutputs` | empty | Automatically discover each computer's monitors |
 | `hyprlandMonitors` | automatic | No hardcoded connectors/resolutions on friends' PCs |
 | `users.NAME.bash` | `"standard"` | Predictable shell; Edi explicitly selects `"ctt"` |
+| `users.NAME.koreanInput` | `false` | Opt-in US English/Korean Dubeolsik input through a per-user Fcitx5 service |
 
 NetworkManager supplies network setup. PipeWire/WirePlumber supply desktop audio.
 Polkit supplies graphical authorization, and UPower reports battery information.
 Fonts provide broad language coverage. Automatic `nh` cleanup retains at least
 five generations and generations from the last seven days. These baseline choices
 are documented next to their implementation in `modules/`.
+
+The fresh installer sets both `btrfsSnapshots = true;` and `secureBoot = true;`
+in `settings/local/default.nix`. The snapshot option requires separate Btrfs mounts
+for `/`, `/home`, `/nix`, `/.snapshots` and `/home/.snapshots`; changing a boolean
+does not create or migrate subvolumes. The Secure Boot option generates keys on
+the target when missing and signs Limine with config/kernel/initrd checksum
+validation. Firmware enrollment belongs to the fresh installer, not subsequent
+rebuilds. Existing/adopted machines keep their bootloader and filesystem settings
+unless explicitly migrated. See [installation](../docs/installation.md).
+
+## Korean input
+
+Set `users.NAME.koreanInput = true;` in the machine's settings, then run
+`apply-system` and reboot. Edi's account already opts in. Fcitx5 and the Hangul
+addon are installed and started only for the accounts that enable this option;
+the login screen and the compositor's base keyboard layout keep their existing
+settings. Korean-capable Noto fonts are already included.
+
+Press **Ctrl+Space** to toggle between US English and standard Korean
+**Dubeolsik (두벌식)**. A dedicated **한/영** key also toggles input. English is
+the initial mode, and the selected language follows you between applications.
+Super+Space remains the launcher shortcut; tapping Shift does not change languages.
+To verify composition, switch to Korean in a text field and type `gksrmf`:
+it should produce `한글`. Toggle again to type English.
+
+The feature configures native Wayland input plus GTK/Qt/XWayland compatibility.
+Helium receives a per-user package with Wayland IME flags, preserving the system
+browser flags. VS Code receives those flags when selected in the account's
+packages; its existing settings and extensions remain user-controlled. Other
+Chromium/Electron apps may need `--enable-wayland-ime` and
+`--wayland-text-input-version=3` (Niri/Hyprland), or version `1` on Plasma.
+Fcitx preferences are managed in `modules/input-method.nix`; edit that module
+instead of changing its generated files with `fcitx5-configtool`.
 
 `settings/defaults.nix` can define shared policy with `lib.mkDefault`:
 

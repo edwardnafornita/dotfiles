@@ -19,6 +19,20 @@
     '';
   };
 
+  # Keep Bluetooth headphones in high-fidelity playback; use the Scarlett for input.
+  services.pipewire.wireplumber.extraConfig."51-bluetooth-playback" = {
+    "wireplumber.settings"."bluetooth.autoswitch-to-headset-profile" = false;
+    "monitor.bluez.properties" = {
+      "bluez5.roles" = [
+        "a2dp_sink"
+        "a2dp_source"
+        "bap_sink"
+        "bap_source"
+      ];
+      "bluez5.hfphsp-backend" = "none";
+    };
+  };
+
   environment.systemPackages = with pkgs; [
     (pkgs.writeShellScriptBin "reboot-windows" ''
       set -euo pipefail

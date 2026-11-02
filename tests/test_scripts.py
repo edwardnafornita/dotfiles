@@ -31,6 +31,13 @@ class SettingsTests(unittest.TestCase):
         self.assertIn('desktop = "plasma";', text)
         self.assertIn('allowUnfree = false;', text)
         self.assertNotIn('users.edi', text)
+        self.assertNotIn('btrfsSnapshots = true;', text)
+        self.assertNotIn('secureBoot = true;', text)
+
+    def test_fresh_install_enables_snapshots_and_secure_boot(self):
+        text = writer.render(self.settings(fresh=True))
+        self.assertIn('btrfsSnapshots = true;', text)
+        self.assertIn('secureBoot = true;', text)
 
     def test_rejects_invalid_identity_and_bundles(self):
         for changes in [dict(user='root'), dict(user='nixbld1'), dict(user='root; bad'), dict(hostname='../bad'),
@@ -126,6 +133,7 @@ else
 fi
 ''')
         self.stub('nixos-rebuild', '#!/usr/bin/env bash\nexit 99\n')
+        self.stub('snapper', '#!/usr/bin/env bash\nexit 99\n')
         self.stub('sudo', r'''#!/usr/bin/env bash
 printf 'sudo %s\n' "$*" >> "$TEST_EVENTS"
 exit "${TEST_SUDO_STATUS:-0}"
@@ -196,6 +204,20 @@ exit "${TEST_SUDO_STATUS:-0}"
         result = self.run_update(TEST_SUDO_STATUS='1')
         self.assertNotEqual(result.returncode, 0)
         self.assertNotIn('Update installed.', result.stdout)
+
+    def test_snapshots_before_activation_on_enabled_machines(self):
+        result = self.run_update(DOTFILES_MODE='apply', DOTFILES_SNAPSHOTS='1')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        log = self.log()
+        self.assertRegex(log, r'sudo [^\n ]*/snapper --no-dbus -c root create')
+        self.assertRegex(log, r'sudo [^\n ]*/snapper --no-dbus -c home create')
+        self.assertLess(log.index('/snapper'), log.index('/nixos-rebuild boot'))
+
+    def test_snapshot_failure_prevents_activation(self):
+        result = self.run_update(DOTFILES_MODE='apply', DOTFILES_SNAPSHOTS='1', TEST_SUDO_STATUS='1')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('/snapper', self.log())
+        self.assertNotIn('/nixos-rebuild boot', self.log())
 
 
 if __name__ == '__main__':

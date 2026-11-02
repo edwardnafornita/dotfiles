@@ -26,20 +26,24 @@
         name: mode:
         pkgs.writeShellApplication {
           inherit name;
-          runtimeInputs = with pkgs; [
-            git # Fetch reviewed updates and require a fast-forward.
-            nix # Evaluate and build the exact locked source snapshot.
-            nixos-rebuild # Install a system generation using NixOS's supported command.
-            jq # Read snapshot metadata without fragile text parsing.
-            coreutils # Paths, directories, timestamps and logging utilities.
-            util-linux # flock prevents simultaneous update operations.
-          ];
+          runtimeInputs =
+            with pkgs;
+            [
+              git # Fetch reviewed updates and require a fast-forward.
+              nix # Evaluate and build the exact locked source snapshot.
+              nixos-rebuild # Install a system generation using NixOS's supported command.
+              jq # Read snapshot metadata without fragile text parsing.
+              coreutils # Paths, directories, timestamps and logging utilities.
+              util-linux # flock prevents simultaneous update operations.
+            ]
+            ++ lib.optional settings.btrfsSnapshots pkgs.snapper;
           text = ''
             export DOTFILES_REPOSITORY=${lib.escapeShellArg settings.updates.repository}
             export DOTFILES_BRANCH=${lib.escapeShellArg settings.updates.branch}
             export DOTFILES_CHECKOUT=${lib.escapeShellArg "${config.home.homeDirectory}/${settings.updates.checkout}"}
             export DOTFILES_OUTPUT=${lib.escapeShellArg settings.updates.output}
             export DOTFILES_MODE=${mode}
+            export DOTFILES_SNAPSHOTS=${if settings.btrfsSnapshots then "1" else "0"}
             ${builtins.readFile ../scripts/update-system.sh}
           '';
         };

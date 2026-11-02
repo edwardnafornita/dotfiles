@@ -50,6 +50,12 @@ in
     bluetooth = option types.bool true "Bluetooth headphones, mice and controllers.";
     printing = option types.bool true "CUPS and local network printer discovery.";
     flatpak = option types.bool true "Allow graphical applications installed through Flatpak.";
+    btrfsSnapshots =
+      option types.bool false
+        "Snapper snapshots for separate Btrfs root/home subvolumes; enabled by fresh installs, never converts disks.";
+    secureBoot =
+      option types.bool false
+        "Signed Limine bootloader with machine-local keys; firmware enrollment is performed by the fresh installer.";
     xboxControllers = option types.bool false "Xbox USB/wireless and Bluetooth controller drivers.";
     powerTuning = option types.bool false "Use tuned, preserving Edi's power management choice.";
     sddmAstronaut = option types.bool false "Use the existing Astronaut SDDM theme.";
@@ -87,6 +93,9 @@ in
               "standard"
               "ctt"
             ]) "standard" "Standard Bash or Chris Titus Tech's customization.";
+            koreanInput =
+              option types.bool false
+                "Enable user-only Fcitx5 Korean Dubeolsik input; Ctrl+Space toggles US English/Korean.";
             homeStateVersion =
               option types.str "26.05"
                 "Original Home Manager version; leave unchanged during upgrades.";
