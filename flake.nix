@@ -20,6 +20,8 @@
     # Only the selected desktop installs its shell.
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
     caelestia.url = "github:caelestia-dots/shell";
+    # iNiR needs its own newer Niri/Qt runtime; keep the host on stable.
+    inir-nixos.url = "github:LATAR-web/inir-nixos";
   };
   outputs =
     inputs:
@@ -31,6 +33,7 @@
         ./modules/core.nix
         ./modules/applications.nix
         ./modules/desktop.nix
+        ./modules/inir.nix
         ./modules/input-method.nix
         ./modules/maintenance.nix
         ./modules/recovery.nix

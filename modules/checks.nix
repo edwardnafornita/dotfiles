@@ -17,6 +17,16 @@
           // extra
         );
       hyprlandShell = shell: (sampleWith "hyprland" { inherit shell; }).config;
+      inir =
+        (sampleWith "niri" {
+          shell = "inir";
+          bluetooth = false;
+          users.alice = {
+            admin = true;
+            koreanInput = true;
+          };
+          users.bob.appGroups = [ ];
+        }).config;
       # Use the exact generated machine module, with fake hardware alongside it.
       freshMachine = pkgs.runCommand "fresh-machine-fixture" { } ''
         mkdir -p $out
@@ -95,6 +105,8 @@
         assert c.programs.niri.enable == (desktop == "niri");
         assert c.programs.hyprland.enable == (desktop == "hyprland");
         assert !c.programs.steam.enable;
+        assert !c.programs.inir.enable;
+        assert !(c.systemd.user.services ? inir);
         assert c.home-manager.users.alice.home.homeDirectory == "/home/alice";
         c.system.build.toplevel.drvPath;
       ediSystem =
@@ -115,6 +127,13 @@
                 .${desktop};
           }
         );
+      ediInir = self.lib.mkSystem (
+        { lib, ... }: {
+          imports = [ ../settings/hosts/nixos.nix ];
+          desktop = lib.mkForce "niri";
+          shell = lib.mkForce "inir";
+        }
+      );
       adopted =
         (self.lib.mkSystem {
           machineModule = ../tests/adopted-machine.nix;
@@ -144,6 +163,30 @@
                     desktop: (ediSystem desktop).config.system.build.toplevel.drvPath
                   );
                   hyprlandShells = lib.genAttrs [ "noctalia" "caelestia" ] inspectHyprlandShell;
+                  inir =
+                    assert inir.programs.inir.enable;
+                    assert !inir.programs.noctalia.enable;
+                    assert !inir.services.blueman.enable;
+                    assert inir.services.displayManager.sddm.enable;
+                    assert !inir.services.displayManager.gdm.enable;
+                    assert !(builtins.elem "i915.enable_psr=0" inir.boot.kernelParams);
+                    assert !inir.programs.inir.niri.autoDeployConfig;
+                    assert builtins.elem "${pkgs.adwaita-icon-theme}/share/icons" (
+                      lib.splitString ":" inir.environment.sessionVariables.XCURSOR_PATH
+                    );
+                    assert builtins.elem
+                      "L+ %h/.local/share/icons/Adwaita - - - - ${pkgs.adwaita-icon-theme}/share/icons/Adwaita"
+                      inir.systemd.user.tmpfiles.rules;
+                    assert inir.security.pam.services ? quickshell;
+                    assert inir.systemd.user.services.inir.partOf == [ "niri.service" ];
+                    assert builtins.elem "/share/quickshell" inir.environment.pathsToLink;
+                    assert inir.systemd.user.services.inir.serviceConfig.Type == "simple";
+                    assert inir.systemd.user.services.niri-sync-colors.wantedBy == [ "niri.service" ];
+                    assert inir.home-manager.users.alice.i18n.inputMethod.enable;
+                    assert !inir.home-manager.users.bob.i18n.inputMethod.enable;
+                    assert !(inir.home-manager.users.alice.xdg.configFile ? "niri/config.kdl");
+                    inir.system.build.toplevel.drvPath;
+                  existingInir = ediInir.config.system.build.toplevel.drvPath;
                   koreanInput = lib.genAttrs [ "plasma" "niri" "hyprland" ] inspectKoreanInput;
                   fresh =
                     assert fresh.fileSystems."/".fsType == "btrfs";
@@ -184,6 +227,8 @@
             '';
         niri-config =
           (ediSystem "niri").config.home-manager.users.edi.xdg.configFile."niri/config.kdl".source;
+        inir-config =
+          ediInir.config.home-manager.users.edi.home.file.".local/share/dotfiles/inir-niri".source;
         hyprland-config =
           pkgs.runCommand "hyprland-config-checked"
             {
@@ -226,11 +271,14 @@
                 git # Temporary local repositories for update tests.
                 jq # Stubbed Nix metadata parser in update tests.
                 util-linux # Update lock handling.
+                patch # Exercise the pinned iNiR color-sync fix.
               ];
+              INIR_COLOR_SYNC_SOURCE = "${inputs.inir-nixos}/scripts/niri-sync-colors";
             }
             ''
               cp -r ${../scripts} scripts
               cp -r ${../tests} tests
+              cp -r ${../patches} patches
               chmod -R u+w scripts tests
               shellcheck scripts/*.sh tests/*.sh
               bash -n scripts/install.sh

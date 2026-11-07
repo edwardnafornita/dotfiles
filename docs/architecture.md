@@ -18,9 +18,12 @@ flake.nix + flake.lock
       modules/desktop.nix       -> selected login session and desktop services
         desktops/plasma.nix    -> native Plasma preferences
         desktops/niri.nix      -> Niri compositor configuration
+        desktops/inir.nix      -> full iNiR Niri rice, validated before seeding
         desktops/hyprland.nix  -> Hyprland compositor configuration
         shells/noctalia.nix    -> Noctalia appearance (Niri or Hyprland)
         shells/caelestia.nix   -> Caelestia appearance and service (Hyprland)
+        shells/inir.nix        -> writable first-login rice migration
+      modules/inir.nix          -> iNiR runtime, services, PAM and fonts
       modules/input-method.nix  -> opt-in per-user Korean input and browser integration
       modules/maintenance.nix   -> cleanup, packaged commands and shortcuts
       modules/recovery.nix      -> optional Btrfs snapshots and signed Limine
@@ -52,6 +55,17 @@ SDDM's greeter protocol is left to upstream defaults or the adopted machine's
 explicit setting. Hardcoding a normal-priority value here would conflict with
 existing installer configurations; a duplicate `mkDefault false` would also
 conflict with Plasma's `mkDefault true`.
+
+iNiR uses the pinned `LATAR-web/inir-nixos` port and its patched iNiR source.
+Only the upstream shell module and port integration module are imported, with
+their own nixpkgs supplied to those module functions. This keeps Qt, Quickshell,
+Python and Niri together while leaving the system package set on stable. The
+port's aggregate module would also enable GDM and add global Qt/kernel settings
+even for other desktop choices, so it is deliberately excluded. Our module owns
+the login manager, session lifecycle, lock-screen PAM and required fonts. The
+full Niri rice is validated as a store artifact and copied once to writable user
+files after Home Manager removes its old managed compositor config. Later
+rebuilds preserve changes made through iNiR's settings UI. See [iNiR](inir.md).
 
 Host selection never assigns Edi's hardware to the generic `nixos` output when
 local settings are absent. The personal output is explicitly `edi-nixos`.

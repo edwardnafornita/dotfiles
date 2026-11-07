@@ -2,14 +2,15 @@
 
 One shared, pinned configuration with KDE Plasma as the default. Each computer
 keeps its own hardware, accounts and preferences. Friends get a familiar desktop
-and an **Update System** shortcut; the maintainer can select Niri + Noctalia or
-Hyprland + Noctalia/Caelestia instead.
+and an **Update System** shortcut. Edi's machine uses Niri + iNiR; Niri + Noctalia
+and Hyprland + Noctalia/Caelestia are also available.
 
 ## Start here
 
 | Task | File or guide |
 | --- | --- |
 | Change Edi's current machine | [`settings/hosts/nixos.nix`](settings/hosts/nixos.nix) |
+| Use and customize Edi's iNiR rice | [iNiR integration](docs/inir.md) |
 | Change a friend's machine after installation | `settings/local/default.nix` (generated; ignored by Git) |
 | Add/remove applications in shared bundles | [`settings/applications.nix`](settings/applications.nix) |
 | Understand every setting and default | [`settings/README.md`](settings/README.md), [`settings/options.nix`](settings/options.nix) |
@@ -25,14 +26,15 @@ Select a desktop in your machine settings, then run `apply-system` and restart:
 ```nix
 desktop = "plasma"; # Default: complete KDE desktop, editable through System Settings.
 # desktop = "niri"; # Niri with Noctalia; configuration in desktops/niri.nix.
+# shell = "inir"; # With Niri: full iNiR rice, including its compositor config.
 # desktop = "hyprland"; # Hyprland with Caelestia by default; desktops/hyprland.nix.
 # shell = "noctalia"; # Optional Hyprland override; shell defaults follow desktop.
 ```
 
 Supported combinations are Plasma with its native UI (`shell = "none"`), Niri
-with Noctalia, and Hyprland with either Noctalia or Caelestia. These shells provide
+with Noctalia or iNiR, and Hyprland with either Noctalia or Caelestia. These shells provide
 panels, launchers and locking; Niri and Hyprland provide window management.
-Shell appearance lives in `shells/noctalia.nix` and `shells/caelestia.nix`.
+Shell integration lives in `shells/`; [iNiR](docs/inir.md) keeps its GUI settings writable.
 Remove a shell override when changing desktops to restore the matching default;
 unsupported pairings fail with a clear evaluation error.
 
@@ -95,7 +97,7 @@ On a friend's checkout, replace `nixosConfigurations.edi-nixos` with
 
 Checks evaluate all three desktops for both Edi and two unrelated test accounts,
 plus adoption of an existing graphical install. They
-validate Niri and both Hyprland shell configurations with their actual parsers,
+validate both Niri shell configurations and both Hyprland shell configurations with their actual parsers,
 lint shell scripts, and exercise disk guards and update failure
 paths using temporary repositories and mocked Nix/administrator commands. The
 separate host-selection test evaluates real Git and path sources, including

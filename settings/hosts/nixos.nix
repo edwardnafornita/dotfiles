@@ -4,7 +4,7 @@
   hostname = "nixos";
   stateVersion = "26.05";
   desktop = "niri";
-  shell = "noctalia";
+  shell = "inir";
   browser = "helium";
   allowUnfree = true; # Existing gaming, Spotify and development applications.
   xboxControllers = true; # Preserve xone and xpadneo support.

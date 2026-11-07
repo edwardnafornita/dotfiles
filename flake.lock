@@ -120,6 +120,47 @@
         "type": "github"
       }
     },
+    "inir": {
+      "inputs": {
+        "nixpkgs": [
+          "inir-nixos",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791870310,
+        "narHash": "sha256-AhRYrGPcu+WuZ40c2WZNTH8GZLR7LFGWTScTYXm9SKs=",
+        "owner": "LATAR-web",
+        "repo": "iNiR",
+        "rev": "d9b76483e7c4ed4db4a39b1089471bc8a27830c4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LATAR-web",
+        "ref": "feat/nixos-port",
+        "repo": "iNiR",
+        "type": "github"
+      }
+    },
+    "inir-nixos": {
+      "inputs": {
+        "inir": "inir",
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1791870417,
+        "narHash": "sha256-VPpy5q4n2ynOPsNPNBW5IVsP8g2C/PFB6oDERyMviwM=",
+        "owner": "LATAR-web",
+        "repo": "inir-nixos",
+        "rev": "1e2f53ac097f23987d92e5ed01f06eac94004ecb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LATAR-web",
+        "repo": "inir-nixos",
+        "type": "github"
+      }
+    },
     "m3shapes": {
       "inputs": {
         "nixpkgs": [
@@ -175,6 +216,22 @@
     },
     "nixpkgs_2": {
       "locked": {
+        "lastModified": 1791594108,
+        "narHash": "sha256-XK4KceonkwD8LuMAt/vNrz982mXJM5jeHAxMwsUXXAQ=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "6510408d147d8c5e6d76043e899e9251756f6a75",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
+      "locked": {
         "lastModified": 1786535285,
         "narHash": "sha256-rG5HKMAgAhMgydvKGtco6rqTxRq4EDZQCx9USLvVqYw=",
         "owner": "NixOS",
@@ -189,7 +246,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_3": {
+    "nixpkgs_4": {
       "locked": {
         "lastModified": 1786106723,
         "narHash": "sha256-CgKDSHL6rqAAQkkvg1xaZDQXb77+4XW73iGcUMJ+2w0=",
@@ -204,7 +261,7 @@
     },
     "noctalia": {
       "inputs": {
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_4"
       },
       "locked": {
         "lastModified": 1786566000,
@@ -249,7 +306,8 @@
         "flake-parts": "flake-parts",
         "helium": "helium",
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs_2",
+        "inir-nixos": "inir-nixos",
+        "nixpkgs": "nixpkgs_3",
         "noctalia": "noctalia"
       }
     }

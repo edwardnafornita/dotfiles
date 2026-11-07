@@ -30,6 +30,7 @@ in
           "none"
           "noctalia"
           "caelestia"
+          "inir"
         ])
         (
           {
@@ -39,7 +40,7 @@ in
           }
           .${config.desktop}
         )
-        "Desktop shell: Plasma uses none, Niri uses Noctalia, Hyprland supports either shell.";
+        "Desktop shell: Plasma uses none, Niri supports Noctalia or iNiR, Hyprland supports Noctalia or Caelestia.";
     browser = option (types.enum [
       "firefox"
       "helium"

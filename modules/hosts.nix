@@ -21,6 +21,7 @@ let
         self.nixosModules.core
         self.nixosModules.applications
         self.nixosModules.desktop
+        self.nixosModules.inir
         self.nixosModules.maintenance
         self.nixosModules.recovery
       ];

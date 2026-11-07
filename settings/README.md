@@ -64,7 +64,8 @@ from extra package names. Proprietary packages require `allowUnfree = true`.
 The browser is a separate machine setting (`firefox` or `helium`) because the
 compositor shortcuts and system browser integration must agree. Terminals and file
 managers follow the session: Konsole/Dolphin with Plasma, Alacritty/Thunar with the
-compositors. UI changes within these apps remain user-controlled unless explicitly
+other compositors, and iNiR's terminal selection/Nautilus with the full iNiR rice.
+UI changes within these apps remain user-controlled unless explicitly
 managed by Home Manager.
 
 ## Defaults and feature rationale
@@ -72,7 +73,7 @@ managed by Home Manager.
 | Setting | Default | Why |
 | --- | --- | --- |
 | `desktop` | `"plasma"` | Full desktop with graphical settings and familiar workflows |
-| `shell` | follows desktop | Plasma: `"none"`; Niri: `"noctalia"`; Hyprland: `"caelestia"` or explicit `"noctalia"` |
+| `shell` | follows desktop | Plasma: `"none"`; Niri: `"noctalia"` or explicit `"inir"`; Hyprland: `"caelestia"` or explicit `"noctalia"` |
 | `browser` | `"firefox"` | Mainstream browser maintained in stable nixpkgs |
 | `printing` | `true` | Printers work through CUPS; mDNS discovery opens UDP 5353 locally |
 | `bluetooth` | `true` | Headphones, mice and controllers |
@@ -166,11 +167,18 @@ desktop = "hyprland";
 shell = "noctalia";
 ```
 
-Hyprland defaults to Caelestia when `shell` is omitted. Niri supports Noctalia;
+Hyprland defaults to Caelestia when `shell` is omitted. Niri supports Noctalia or iNiR;
 Plasma uses its own panel and lock screen. Remove an explicit shell override when
 switching back to Plasma. Configure shell appearance in `shells/`; compositor
 shortcuts and layout remain in `desktops/`. Only the selected shell and its
 authentication agent are enabled.
+
+Edi explicitly selects `desktop = "niri"; shell = "inir";`. This uses the full
+upstream iNiR rice in place of `desktops/niri.nix`. Its Niri/Qt runtime follows
+the separate iNiR lockfile pin; the rest of the machine stays on stable NixOS.
+Monitor and keyboard settings are applied on first migration. Subsequent GUI
+changes remain in writable `~/.config/niri/config.d/` files. See
+[iNiR integration](../docs/inir.md) for updating the seed and restoring a backup.
 
 SDDM follows the upstream greeter defaults (Wayland for Plasma, X11 for the
 compositor profiles). An adopted machine's explicit `sddm.wayland.enable` is

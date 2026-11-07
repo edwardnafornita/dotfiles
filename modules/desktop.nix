@@ -17,14 +17,17 @@
             builtins.elem settings.shell
               {
                 plasma = [ "none" ];
-                niri = [ "noctalia" ];
+                niri = [
+                  "noctalia"
+                  "inir"
+                ];
                 hyprland = [
                   "noctalia"
                   "caelestia"
                 ];
               }
               .${settings.desktop};
-          message = "Unsupported desktop/shell pairing: Plasma uses none, Niri uses noctalia, Hyprland uses noctalia or caelestia.";
+          message = "Unsupported desktop/shell pairing: Plasma uses none, Niri uses noctalia or inir, Hyprland uses noctalia or caelestia.";
         }
       ];
       # Force only the session selectors so a copied graphical-installer config
@@ -97,7 +100,7 @@
           pavucontrol # Mixer for compositor sessions.
           file-roller # Thunar archive operations.
         ]
-        ++ lib.optional (settings.desktop == "niri") xwayland-satellite # X11 application support in Niri.
+        ++ lib.optional (settings.desktop == "niri" && settings.shell != "inir") xwayland-satellite # iNiR supplies its matching runtime.
         ++ lib.optionals (wm && settings.flatpak) [
           gnome-software # Graphical Flatpak management outside Plasma Discover.
         ]
@@ -109,7 +112,8 @@
     };
   flake.homeModules.desktop = { settings, ... }: {
     imports = [
-      ../desktops/${settings.desktop}.nix
+      # iNiR supplies its complete modular Niri rice and writable GUI settings.
+      (if settings.shell == "inir" then ../desktops/inir.nix else ../desktops/${settings.desktop}.nix)
     ]
     ++ (if settings.shell == "none" then [ ] else [ ../shells/${settings.shell}.nix ]);
   };
