@@ -62,10 +62,20 @@ steps with `--fresh`. It lists disks, refuses disks in use, requires the exact
 `ERASE /dev/...` confirmation, generates hardware configuration for that computer,
 and asks for the new account password. Fresh installs use compressed **Btrfs**,
 automatic root/home **Snapper snapshots**, and signed **Limine Secure Boot**.
-Prepare firmware Setup Mode before installation, authorize key enrollment, then
-enable Secure Boot in firmware afterward. See the [installation guide](docs/installation.md)
-first: fresh mode is unencrypted, erases the chosen disk, and does not set up dual
-boot. Use the graphical NixOS installer for encryption/dual-boot layouts.
+For new keys, prepare firmware Setup Mode before installation, authorize key
+enrollment, then enable Secure Boot in firmware afterward. To move NixOS to a new
+drive on the same computer while preserving existing firmware keys, use:
+
+```bash
+bash scripts/install.sh --fresh \
+  --reuse-secure-boot-from /dev/disk/by-uuid/OLD-NIXOS-ROOT-UUID
+```
+
+The script reads the old root partition automatically, verifies its signing keys
+against firmware, and installs onto the separate disk you select. See the
+[installation guide](docs/installation.md) first: fresh mode is unencrypted and
+erases the chosen disk. Other drives are preserved. Use the graphical installer
+for encryption or a dual-boot layout sharing one disk.
 
 Do **not** run either installer on Edi's already-managed machine. Its output is
 `edi-nixos` (renamed from `nixos` to prevent accidental fallback); it continues to use its existing hardware and Limine Secure Boot.

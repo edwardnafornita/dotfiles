@@ -64,20 +64,22 @@ table, a 1 GiB FAT32 EFI partition and Btrfs using the rest of the disk. Separat
 `snapshots` and `home-snapshots` subvolumes mount at `/.snapshots` and
 `/home/.snapshots`, with root-only access. `/boot` has restrictive permissions.
 Compressed RAM swap remains enabled; disk encryption and hibernation are not
-configured. For encryption or Windows dual boot, use the graphical installer
+configured. For encryption or Windows dual boot on the same disk, use the graphical installer
 followed by the existing-install route above. Adoption preserves that install's
 storage/boot configuration; it does not automatically enable these fresh-install
 features. Edi's existing boot and disk configuration is independent.
 
 Fresh installs use **Limine with Secure Boot signing and enrolled configuration
-checksums**, rather than systemd-boot. Before starting, disable Secure Boot and
+checksums**, rather than systemd-boot. For migration to another drive on the same
+computer, use the key-reuse procedure below and preserve firmware keys. For a
+new-key installation (plain `--fresh`), first disable Secure Boot and
 enter **UEFI Setup Mode** for custom-key enrollment. Disabling Secure Boot alone
 is insufficient. Firmware calls this Reset to Setup Mode, Delete Platform Key,
 or a similar device-specific action. Back up any existing firmware keys and
 recovery information first; do not reset keys on a machine whose existing boot
 setup you intend to keep.
 
-The installer checks Setup Mode before formatting, asks for explicit enrollment
+In new-key mode the installer checks Setup Mode before formatting, asks for explicit enrollment
 authorization, generates keys inside the target's `/var/lib/sbctl`, and verifies
 the installed Limine signature. It then enrolls the target keys with Microsoft
 and firmware vendor certificates. It does not use safety-bypass flags or enroll
@@ -102,6 +104,51 @@ formatting. Keep Secure Boot disabled until the failure is resolved.
    the enrolled custom keys. Do not restore factory keys over the newly enrolled
    keys. Start the machine and check `sudo sbctl status`: Secure Boot should be
    enabled and Setup Mode disabled. No automatic reboot occurs.
+
+### Fresh installation on another drive with existing Secure Boot keys
+
+Boot the NixOS live ISO in UEFI mode, keep the old drive attached, and use a fresh
+checkout of this repo. Pass the old NixOS **root partition** as the key source:
+
+```bash
+bash scripts/install.sh --fresh \
+  --reuse-secure-boot-from /dev/disk/by-uuid/OLD-NIXOS-ROOT-UUID
+```
+
+Use `lsblk -o PATH,SIZE,MODEL,SERIAL,FSTYPE,UUID,MOUNTPOINTS` to identify the source
+partition and the new target disk. The source can be Btrfs with a `root` subvolume
+(this repo's layout) or ext4. Encrypted/mapped roots and other subvolume layouts
+are not supported by this option. No manual mounting or partitioning is needed.
+
+Keep firmware Setup Mode disabled and do not clear/reset enrolled keys. Secure
+Boot can remain enabled if the ISO boots; if it must be disabled temporarily,
+disable enforcement only and re-enable it before testing the new installation.
+
+The script mounts the source read-only without journal/log replay, validates all
+three key/certificate pairs and their enrollment in firmware, and stages the keys
+and owner GUID in a root-only temporary directory under `/run`. All validation
+happens before disk erasure. It refuses to erase the source disk, even after
+unmounting it. Choose the **new whole disk** at the normal disk-selection prompt
+and confirm the exact erase phrase. Only that disk is formatted, with its own EFI
+partition and newly generated hardware configuration.
+
+Keys are copied into the target's `/var/lib/sbctl` before `nixos-install` signs
+Limine. The old installation's signing-file database is not copied. The new local
+machine module disables automatic key generation and enrollment, so a missing
+key fails signing rather than creating an untrusted replacement. No firmware key
+enrollment command is run, and source keys remain intact. Temporary copies are
+cleaned on exit; keys never enter the checkout or Nix store.
+
+Reuse mode installs the signed loader at `\efi\boot\BOOTX64.EFI` and adds a
+separate **NixOS (new drive)** firmware entry. It disables Limine's automatic EFI
+entry management so existing Limine and Windows entries are preserved, including
+during subsequent rebuilds. Select the new entry when testing the new drive.
+
+After installation, test the new drive with Secure Boot enabled and the old drive
+disabled/disconnected. Confirm `sudo sbctl status` reports Secure Boot enabled and
+Setup Mode disabled. Then reconnect the old drive to transfer personal files and
+test Windows Boot Manager directly before deleting any old Linux partitions.
+The installer does not transfer home directories or add a Windows menu entry.
 
 Snapper takes initial snapshots during installation, a root snapshot on boot,
 hourly root/home snapshots, and root/home snapshots before `apply-system` or
@@ -150,7 +197,9 @@ friend. A successful Nix evaluation cannot prove the physical machine boots.
 The bootstrap shell uses the locked nixpkgs versions of Git (checkout/update),
 Python (settings serialization, disk checks and Secure Boot JSON validation),
 parted/partprobe (partition table creation and kernel rescan), dosfstools (EFI FAT
-filesystem), btrfs-progs (root filesystem and subvolumes), sbctl (firmware status), util-linux
+filesystem), btrfs-progs (root filesystem and subvolumes), sbctl (firmware status
+and enrolled certificates), OpenSSL (key/certificate validation), efibootmgr
+(registering the new drive without replacing old entries), util-linux
 (block-device inspection and mounts), and nixos-install-tools (hardware detection,
 installation and entering the installed system), and nixos-rebuild (installing
 a built generation on an existing system). Privileged commands use resolved

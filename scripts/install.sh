@@ -7,13 +7,20 @@ mode=${1:---help}
 case "$mode" in
   --existing|--fresh) ;;
   --help)
-    printf '%s\n' 'Usage: bash scripts/install.sh --existing | --fresh' \
+    printf '%s\n' 'Usage: bash scripts/install.sh --existing | --fresh [--reuse-secure-boot-from /dev/OLD-ROOT-PARTITION]' \
       'Existing: preserve /etc/nixos, create private settings, build, then offer activation.' \
-      'Fresh: from a NixOS UEFI live ISO, explicitly erase one empty/unmounted whole disk.'
+      'Fresh: from a NixOS UEFI live ISO, explicitly erase one empty/unmounted whole disk.' \
+      'Reuse: read keys from an existing Btrfs (root subvolume) or ext4 installation; preserve enrolled firmware keys.'
     exit 0 ;;
   *) echo 'Choose --existing or --fresh. See --help.' >&2; exit 2 ;;
 esac
-[[ $# == 1 ]] || { echo 'Unexpected arguments.' >&2; exit 2; }
+fresh_options=()
+if [[ $# != 1 ]]; then
+  [[ $mode == --fresh && $# == 3 && $2 == --reuse-secure-boot-from && -n $3 ]] || {
+    echo 'Unexpected arguments. See --help.' >&2; exit 2;
+  }
+  fresh_options=("$2" "$3")
+fi
 [[ -f /etc/NIXOS ]] || { echo 'Run this from NixOS or its live installer.' >&2; exit 1; }
 [[ $(uname -m) == x86_64 ]] || { echo 'Only x86_64 is supported by these profiles.' >&2; exit 1; }
 [[ -t 0 ]] || { echo 'This installer requires an interactive terminal.' >&2; exit 1; }
@@ -23,8 +30,8 @@ if [[ ${DOTFILES_INSTALL_TOOLS:-0} != 1 ]]; then
   exec nix --extra-experimental-features 'nix-command flakes' shell \
     --inputs-from "path:$repo" --no-update-lock-file \
     nixpkgs#git nixpkgs#python3 nixpkgs#parted nixpkgs#btrfs-progs nixpkgs#sbctl \
-    nixpkgs#dosfstools nixpkgs#util-linux nixpkgs#nixos-install-tools nixpkgs#nixos-rebuild \
-    --command bash "$repo/scripts/install.sh" "$mode"
+    nixpkgs#dosfstools nixpkgs#util-linux nixpkgs#openssl nixpkgs#efibootmgr nixpkgs#nixos-install-tools nixpkgs#nixos-rebuild \
+    --command bash "$repo/scripts/install.sh" "$mode" "${fresh_options[@]}"
 fi
 # Commands needed by helper scripts also inherit flake support on fresh installs.
 export NIX_CONFIG="${NIX_CONFIG:-}
@@ -75,7 +82,7 @@ args=(--user "$login" --hostname "$hostname" --uid "$uid" --state-version "$stat
 if [[ $mode == --fresh ]]; then args+=(--fresh); fi
 python3 "$repo/scripts/write-local-settings.py" "${args[@]}" >/dev/null
 if [[ $mode == --fresh ]]; then
-  bash "$repo/scripts/install-fresh.sh" "$repo" "${args[@]}"
+  bash "$repo/scripts/install-fresh.sh" "$repo" "${fresh_options[@]}" "${args[@]}"
   exit
 fi
 mkdir -p "$repo/settings/local/base"

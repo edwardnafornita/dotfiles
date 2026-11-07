@@ -268,6 +268,7 @@
                 bash # Script syntax and isolated execution tests.
                 shellcheck # Shell correctness checks.
                 python3 # Settings escaping and update failure-path tests.
+                openssl # Validate real signing key/certificate pairs in migration tests.
                 git # Temporary local repositories for update tests.
                 jq # Stubbed Nix metadata parser in update tests.
                 util-linux # Update lock handling.

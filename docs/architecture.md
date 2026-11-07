@@ -94,8 +94,13 @@ The fresh installer formats Btrfs, mounts all subvolumes before hardware detecti
 and copies `scripts/fresh-machine.nix` alongside the generated hardware module.
 Its local settings enable `btrfsSnapshots` and `secureBoot`; both default off for
 existing profiles. `modules/recovery.nix` configures Snapper retention/scheduling
-and signed Limine. Only the fresh installer enrolls firmware keys, after verifying
-Setup Mode and the target EFI signature. Private keys remain in the target's
+and signed Limine. New-key mode enrolls firmware keys after verifying Setup Mode
+and the target EFI signature. With `--reuse-secure-boot-from`, the installer
+reads an old root partition without journal replay, validates the key pairs and
+firmware certificates, protects the source disk from erasure, and stages keys in
+root-only `/run` storage. It copies them before bootloader installation, disables
+automatic key generation/enrollment in the new machine module, and skips firmware
+enrollment. Private keys remain in the target's
 `/var/lib/sbctl`, outside all source snapshots. `tests/recovery-vm.nix` exercises
 Btrfs file restoration and EFI signing in a disposable guest; mock installer tests
 exercise confirmation gates, command ordering and failures without touching disks.

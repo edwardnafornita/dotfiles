@@ -101,8 +101,10 @@ in `settings/local/default.nix`. The snapshot option requires separate Btrfs mou
 for `/`, `/home`, `/nix`, `/.snapshots` and `/home/.snapshots`; changing a boolean
 does not create or migrate subvolumes. The Secure Boot option generates keys on
 the target when missing and signs Limine with config/kernel/initrd checksum
-validation. Firmware enrollment belongs to the fresh installer, not subsequent
-rebuilds. Existing/adopted machines keep their bootloader and filesystem settings
+validation. Fresh installs with `--reuse-secure-boot-from` instead copy keys from
+the old installation and disable automatic key generation and firmware enrollment
+in the local machine module. Firmware enrollment belongs to the fresh installer's
+new-key mode, not subsequent rebuilds. Existing/adopted machines keep their bootloader and filesystem settings
 unless explicitly migrated. See [installation](../docs/installation.md).
 
 ## Korean input

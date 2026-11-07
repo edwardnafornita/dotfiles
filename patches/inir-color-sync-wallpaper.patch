@@ -1,0 +1,32 @@
+--- a/scripts/niri-sync-colors
++++ b/scripts/niri-sync-colors
+@@ -218,27 +218,8 @@
+             except Exception:
+                 pass
+ 
+-# 2. Sync wallpaper path into iNiR shell config
+-if os.path.exists(meta_file):
+-    try:
+-        wp = meta.get("source_path")
+-        if wp and os.path.exists(wp):
+-            if os.path.exists(shell_conf_file):
+-                with open(shell_conf_file, "r", encoding="utf-8") as f:
+-                    conf = json.load(f)
+-            else:
+-                conf = {}
+-                os.makedirs(os.path.dirname(shell_conf_file), exist_ok=True)
+-            if not isinstance(conf.get("background"), dict):
+-                conf["background"] = {}
+-            if conf["background"].get("wallpaperPath") != wp:
+-                conf["background"]["wallpaperPath"] = wp
+-                tmp = f"{shell_conf_file}.tmp.{os.getpid()}"
+-                with open(tmp, "w", encoding="utf-8") as f:
+-                    json.dump(conf, f, indent=2)
+-                os.replace(tmp, shell_conf_file)
+-    except Exception:
+-        pass
++# Palette metadata may name a video thumbnail or a separate color source.
++# Keep the wallpaper selected by the shell; only synchronize colors here.
+ 
+ # Helper for atomic file write
+ def write_atomic(filepath, content):
