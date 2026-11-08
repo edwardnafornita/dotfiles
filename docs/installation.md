@@ -56,6 +56,45 @@ Back it up separately: Git intentionally does not contain it. Copied Nix source
 must not contain secrets; use external password files/secret management if the
 original system already does so.
 
+### Existing installation on another drive with existing Secure Boot keys
+
+For a second drive in a computer that already has this repo's signed Limine
+Secure Boot set up on another drive (for example a drive installed with the
+graphical installer for encryption or Windows dual-boot, which `--fresh`
+cannot do), adopt it the same way as above but pass the old drive's root
+partition:
+
+```bash
+bash scripts/install.sh --existing \
+  --reuse-secure-boot-from /dev/disk/by-uuid/OLD-NIXOS-ROOT-UUID
+```
+
+Boot into the new drive to run this (not a chroot or the old drive); the old
+drive only needs to be attached so its root partition can be mounted read-only
+for its keys. Secure Boot enforcement is a single firmware-wide switch, and the
+new drive's current bootloader is unsigned, so it will not boot with
+enforcement on. Disable enforcement only (not firmware Setup Mode, and do not
+clear/reset enrolled keys) before booting into the new drive; re-enable it once
+both drives carry signed Limine. This does not touch the old drive's enrolled
+keys or its Limine installation, which only depend on Setup Mode and the
+signed binary on its own disk, not the enforcement switch.
+
+The source can be Btrfs with a `root` subvolume (this repo's layout) or ext4,
+matching the fresh-install key-reuse source requirements. The script validates
+firmware state and all three key/certificate pairs before changing anything,
+stages them in a root-only temporary directory under `/run`, then copies them
+into the live system's `/var/lib/sbctl` (refusing to run if that path already
+exists). It replaces the copied configuration's `systemd-boot` with signed
+Limine, disables automatic key generation/enrollment so a missing key fails
+signing instead of creating an untrusted replacement, and disables
+`canTouchEfiVariables` with removable-media installation so upstream Limine's
+EFI entry management cannot replace the old drive's existing "Limine" firmware
+entry. Confirming activation at the end installs the bootloader, verifies the
+signed removable binary, and registers a separate "NixOS (new drive)" firmware
+entry. This assumes the EFI System Partition is mounted at `/boot`, matching
+this repo's own convention; adjust manually first if the existing install
+mounts it elsewhere (e.g. `/boot/efi`).
+
 ## Fresh whole-disk installation
 
 This mode **erases all data on the selected disk**. It creates a GPT partition

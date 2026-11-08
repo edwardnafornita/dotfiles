@@ -39,6 +39,11 @@ class SettingsTests(unittest.TestCase):
         self.assertIn('btrfsSnapshots = true;', text)
         self.assertIn('secureBoot = true;', text)
 
+    def test_existing_install_can_enable_secure_boot_without_snapshots(self):
+        text = writer.render(self.settings(secure_boot=True))
+        self.assertIn('secureBoot = true;', text)
+        self.assertNotIn('btrfsSnapshots = true;', text)
+
     def test_rejects_invalid_identity_and_bundles(self):
         for changes in [dict(user='root'), dict(user='nixbld1'), dict(user='root; bad'), dict(hostname='../bad'),
                         dict(state_version='latest'), dict(apps=['unknown'])]:

@@ -40,6 +40,19 @@
           btrfsSnapshots = true;
           secureBoot = true;
         }).config;
+      # Models install.sh --existing --reuse-secure-boot-from: a copied graphical-installer
+      # config (systemd-boot, tests/machine.nix) overridden the same way install.sh writes it.
+      existingReuseMachine = pkgs.runCommand "existing-reuse-machine-fixture" { } ''
+        mkdir -p $out/base
+        cp ${../scripts/existing-reuse-machine.nix} $out/machine.nix
+        cp ${../tests/machine.nix} $out/base/configuration.nix
+      '';
+      existingReuse =
+        (self.lib.mkSystem {
+          machineModule = "${existingReuseMachine}/machine.nix";
+          users.alice.admin = true;
+          secureBoot = true;
+        }).config;
       inspectKoreanInput =
         desktop:
         let
@@ -208,6 +221,16 @@
                     assert adopted.services.snapper.configs == { };
                     assert !adopted.boot.loader.limine.enable;
                     fresh.system.build.toplevel.drvPath;
+                  existingReuse =
+                    assert !existingReuse.boot.loader.systemd-boot.enable;
+                    assert existingReuse.boot.loader.limine.enable;
+                    assert existingReuse.boot.loader.limine.secureBoot.enable;
+                    assert !existingReuse.boot.loader.limine.secureBoot.autoGenerateKeys;
+                    assert !existingReuse.boot.loader.limine.secureBoot.autoEnrollKeys.enable;
+                    assert !existingReuse.boot.loader.efi.canTouchEfiVariables;
+                    assert existingReuse.boot.loader.limine.efiInstallAsRemovable;
+                    assert existingReuse.fileSystems."/".fsType == "ext4"; # Copied base config is preserved.
+                    existingReuse.system.build.toplevel.drvPath;
                   adoption =
                     assert adopted.system.stateVersion == "25.11";
                     assert !adopted.services.desktopManager.gnome.enable;

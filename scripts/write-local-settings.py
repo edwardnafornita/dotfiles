@@ -27,9 +27,13 @@ def render(args):
         raise ValueError("Unknown application bundle")
     groups = list(dict.fromkeys(groups))
     unfree = bool(set(groups) & {"gaming", "development", "media"})
-    fresh_settings = '''  btrfsSnapshots = true; # Root/home snapshots with bounded retention.
-  secureBoot = true; # Signed Limine; keys are enrolled by the fresh installer.
-''' if getattr(args, "fresh", False) else ""
+    fresh = getattr(args, "fresh", False)
+    secure_boot = fresh or getattr(args, "secure_boot", False)
+    fresh_settings = ""
+    if fresh:
+        fresh_settings += "  btrfsSnapshots = true; # Root/home snapshots with bounded retention.\n"
+    if secure_boot:
+        fresh_settings += "  secureBoot = true; # Signed Limine; keys are enrolled or reused by the installer.\n"
     return f'''{{
   # Private machine settings. Ignored by Git; preserved by update-system.
   # Do not put passwords, tokens or private keys here: Nix sources are public locally.
@@ -70,6 +74,7 @@ def main():
     parser.add_argument("--keyboard", default="us")
     parser.add_argument("--desktop", choices=["plasma", "niri", "hyprland"], default="plasma")
     parser.add_argument("--fresh", action="store_true", help="Enable Btrfs snapshots and signed Limine for a fresh installation")
+    parser.add_argument("--secure-boot", action="store_true", help="Enable signed Limine using Secure Boot keys reused from another installation")
     parser.add_argument("--apps", nargs="*", default=[])
     parser.add_argument("--extra-groups", nargs="*", default=[])
     parser.add_argument("--repository", default="https://github.com/edwardnafornita/dotfiles.git")

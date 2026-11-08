@@ -77,6 +77,11 @@ against firmware, and installs onto the separate disk you select. See the
 erases the chosen disk. Other drives are preserved. Use the graphical installer
 for encryption or a dual-boot layout sharing one disk.
 
+For that graphical-installer/encrypted case, `--existing` takes the same
+`--reuse-secure-boot-from` option to adopt it with signed Limine reusing the
+other drive's keys instead of its own `systemd-boot`. See
+[existing installation on another drive](docs/installation.md#existing-installation-on-another-drive-with-existing-secure-boot-keys).
+
 Do **not** run either installer on Edi's already-managed machine. Its output is
 `edi-nixos` (renamed from `nixos` to prevent accidental fallback); it continues to use its existing hardware and Limine Secure Boot.
 

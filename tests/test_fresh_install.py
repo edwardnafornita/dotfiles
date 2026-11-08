@@ -167,10 +167,36 @@ class InstallerArgumentsTests(unittest.TestCase):
                 os.close(master)
                 os.close(slave)
 
+    def test_bootstrap_preserves_key_source_argument_for_existing_mode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            script = root / "install.sh"
+            text = (ROOT / "scripts/install.sh").read_text().replace("/etc/NIXOS", str(root / "NIXOS"))
+            script.write_text(text)
+            (root / "NIXOS").touch()
+            tool = root / "nix"
+            tool.write_text("#!" + sys.executable + "\nimport json,sys\nprint(json.dumps(sys.argv[1:]))\n")
+            tool.chmod(0o755)
+            master, slave = os.openpty()
+            try:
+                result = subprocess.run([
+                    "bash", str(script), "--existing", "--reuse-secure-boot-from", "/dev/disk/by-uuid/old-root"
+                ], stdin=slave, text=True, capture_output=True, env=os.environ | {
+                    "PATH": str(root) + os.pathsep + os.environ["PATH"], "DOTFILES_INSTALL_TOOLS": "0",
+                })
+                self.assertEqual(result.returncode, 0, result.stderr)
+                arguments = json.loads(result.stdout)
+                self.assertEqual(arguments[-3:],
+                                 ["--existing", "--reuse-secure-boot-from", "/dev/disk/by-uuid/old-root"])
+            finally:
+                os.close(master)
+                os.close(slave)
+
     def test_invalid_options_rejected_before_bootstrap(self):
         for arguments in (["--fresh", "--reuse-secure-boot-from"],
-                          ["--existing", "--reuse-secure-boot-from", "/dev/old-root"],
-                          ["--fresh", "--unknown", "/dev/old-root"]):
+                          ["--existing", "--reuse-secure-boot-from"],
+                          ["--fresh", "--unknown", "/dev/old-root"],
+                          ["--existing", "--unknown", "/dev/old-root"]):
             result = subprocess.run(["bash", str(ROOT / "scripts/install.sh"), *arguments],
                                     text=True, capture_output=True)
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)

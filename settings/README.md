@@ -105,7 +105,9 @@ validation. Fresh installs with `--reuse-secure-boot-from` instead copy keys fro
 the old installation and disable automatic key generation and firmware enrollment
 in the local machine module. Firmware enrollment belongs to the fresh installer's
 new-key mode, not subsequent rebuilds. Existing/adopted machines keep their bootloader and filesystem settings
-unless explicitly migrated. See [installation](../docs/installation.md).
+unless explicitly migrated: `install.sh --existing --reuse-secure-boot-from` sets only `secureBoot = true`
+(never `btrfsSnapshots`) and applies the same key-reuse override to the copied machine module.
+See [installation](../docs/installation.md).
 
 ## Korean input
 
